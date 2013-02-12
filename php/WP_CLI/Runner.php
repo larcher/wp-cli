@@ -266,6 +266,9 @@ class Runner {
 			}
 		}
 
+		if ( $this->cmd_starts_with( array( 'import') ) )
+			define( 'WP_LOAD_IMPORTERS', true );
+
 		// Pretend we're in WP_ADMIN
 		define( 'WP_ADMIN', true );
 		$_SERVER['PHP_SELF'] = '/wp-admin/index.php';
