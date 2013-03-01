@@ -140,6 +140,49 @@ class Blog_Command extends WP_CLI_Command {
 		WP_CLI::success( "Blog '$slug' deleted." );
 	}
 
+	/**
+	 * Get info on a single site in a multisite install.
+	 *
+	 * @synopsis [<blog-id>|<slug>] [--fields=<fields>]
+	 */
+	function info( $_, $assoc_args ) {
+        // first argument is either the slug or the blog_id
+        // guess it's a blog_id first
+        $blog_id = intval($_[0]);
+
+        // if we get 0, it wasn't a blog_id
+        if ($blog_id == 0) 
+        {
+            // so go find the blog_id based on the slug
+            $slug = '/' . trim( $_[0], '/' ) . '/';
+            $blog_id = self::get_blog_id_by_slug( $slug );
+        }
+        if ($blog_id == 0)
+            WP_CLI::error("not a valid blog_id or slug: ".$_[0]);
+
+        if ($assoc_args['fields'] == "") {
+            // set some default fields if none were specified
+            $fields = Array('blog_id', 'site_id', 'domain', 'path', 'registered',
+                'last_updated', 'blogname', 'siteurl', 'post_count');
+            // all possible fields are:
+            //  $fields =['blog_id', 'site_id', 'domain', 'path', 'registered',
+            //      'last_updated', 'public', 'archived', 'mature', 'spam',
+            //      'deleted', 'lang_id', 'blogname', 'siteurl', 'post_count'];
+        } else {
+            $fields = explode(",",trim($assoc_args['fields']));
+        }
+
+        $blog_details = get_blog_details( $blog_id);
+                WP_CLI::print_value($blog_details,$assoc_args);
+        foreach ($blog_details as $key => $value)
+        {
+            // TODO use WP_CLI::print_value here instead
+            if (in_array($key, $fields))
+                echo(strtoupper($key)."='$value'");
+        }
+
+	}
+
 	protected static function get_blog_id_by_slug( $slug ) {
 		global $wpdb, $current_site;
 
